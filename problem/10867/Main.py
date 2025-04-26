@@ -1,0 +1,1 @@
+i=input;i();print(*sorted({*map(int,i().split())}))
