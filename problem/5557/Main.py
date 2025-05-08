@@ -12,9 +12,10 @@ def solve(i: int = 0, x: int = 0) -> int:
     if i == len(NUMBERS):
         return 1 if (x == ANSWER) else 0
     cases = 0
-    for y in (x-NUMBERS[i], x+NUMBERS[i]):
-        if 0 <= y <= 20:
-            cases += solve(i+1, y)
+    if i > 0 and x-NUMBERS[i] >= 0:
+        cases += solve(i+1, x-NUMBERS[i])
+    if x+NUMBERS[i] <= 20:
+        cases += solve(i+1, x+NUMBERS[i])
     return cases
 
 
