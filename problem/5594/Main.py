@@ -52,7 +52,7 @@ for node in range(1, n+1):
 # Print teams line by line, ordered by their ranks
 
 is_determinded = True
-for rank in sorted(teams_per_rank):
+for rank in range(1, max(teams_per_rank)+1):
     is_determinded &= (len(teams_per_rank[rank]) == 1)
     for node in teams_per_rank[rank]:
         sys.stdout.write(f'{node}\n')
