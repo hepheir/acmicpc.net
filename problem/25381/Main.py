@@ -1,4 +1,3 @@
-import functools
 import sys
 
 
@@ -7,16 +6,20 @@ MAX_S_LEN = 300000
 sys.setrecursionlimit(10*MAX_S_LEN)
 
 
-@functools.cache
-def get_max_exec(S: str) -> int:
-    max_exec = 0
-    for i in range(len(S)):
-        if not (S[i] == 'A' or S[i] == 'B'):
-            continue
-        for j in range(i+1, len(S)):
-            if (S[i] == 'A' and S[j] == 'B') or (S[i] == 'B' and S[j] == 'C'):
-                max_exec = max(max_exec, get_max_exec(S[:i]+S[i+1:j]+S[j+1:])+1)
-    return max_exec
+def solve(S: str, A: int, B: int, C: int, i: int = 0) -> int:
+    if i == len(S):
+        return 0
+    if S[i] == 'A' and A > 0 and B > 0:
+        return solve(S, A-1, B-1, C, i+1)+1
+    if S[i] == 'B' and B > 0 and C > 0:
+        return solve(S, A, B-1, C-1, i+1)+1
+    return solve(S, A, B, C, i+1)
 
 
-print(get_max_exec(S=sys.stdin.readline().strip()))
+S = sys.stdin.readline().strip()
+
+A = sum([1 for c in S if c == 'A'])
+B = sum([1 for c in S if c == 'B'])
+C = sum([1 for c in S if c == 'C'])
+
+print(solve(S, A, B, C))
