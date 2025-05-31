@@ -5,10 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "acmicpc.net_53c5d371"
+        },
+        {
             "name": "Python: 현재 파일",
             "type": "python",
             "request": "launch",
-            "args": ["<", "${workspaceFolder}/.vscode/stdin"],
+            "args": [
+                "<",
+                "${workspaceFolder}/.vscode/stdin"
+            ],
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true

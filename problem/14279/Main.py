@@ -5,24 +5,22 @@ def calculate_value(A: int, B: int) -> int:
     return abs(A-a) + abs(B-b) + abs(A*B-c)
 
 
-def solve_with_fixed_A(A: int) -> int:
-    hi = int(1e13)
-    lo = 1
-    while lo < hi:
-        mid = (hi+lo)//2
-        if calculate_value(A, mid) < calculate_value(A, mid+1):
-            hi = mid
-        else:
-            lo = mid+1
-    return calculate_value(A, lo)
+min_value = min(calculate_value(a, b), calculate_value(0, 0))
+max_diff = min_value
+
+A_diff = 0
+while A_diff < max_diff:
+    B_diff = 0
+    while B_diff < (max_diff-A_diff):
+        for A, B in [(a-A_diff, b-B_diff), (a-A_diff, b+B_diff), (a+A_diff, b-B_diff), (a+A_diff, b+B_diff)]:
+            if A <= 0 or B <= 0:
+                continue
+            value = calculate_value(A, B)
+            if min_value > value:
+                min_value = value
+                max_diff = min(max_diff, A_diff+B_diff)
+        B_diff += 1
+    A_diff += 1
 
 
-def solve_with_bruteforcing_A() -> int:
-    min_value = int(1e13)
-    for A in range(1, 2*a+1):
-        if min_value > (value := solve_with_fixed_A(A)):
-            min_value = value
-    return min_value
-
-
-print(solve_with_bruteforcing_A())
+print(min_value)
