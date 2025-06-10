@@ -1,5 +1,11 @@
-import dataclasses
+from typing import *
+
+import math
 import sys
+
+
+class InvalidMoleculeException(Exception):
+    pass
 
 
 MAX_R = 5
@@ -8,82 +14,123 @@ MAX_C = 5
 DR = (-1, 0, 0, 1,)
 DC = (0, -1, 1, 0,)
 
-BOND_COUNT = {
-    '.': 0,
-    'H': 1,
-    'O': 2,
-    'N': 3,
-    'C': 4,
-}
-
-grid = [[None] * MAX_C for _ in range(MAX_R)]
-R = 0
-C = 0
+GRID = [[None] * MAX_C for _ in range(MAX_R)]
+BOND = [[0] * MAX_C for _ in range(MAX_R)]
+BOND_CNT_ASC = '.HONC'
 
 
-@dataclasses.dataclass
-class Context:
-    R: int = 0
-    C: int = 0
-    grid: list = dataclasses.field(default_factory=lambda: [[0] * MAX_C for _ in range(MAX_R)])
+def init_bond(R: int, C: int, grid: List[List[str]]) -> List[List[int]]:
+    for r in range(R):
+        for c in range(C):
+            BOND[r][c] = BOND_CNT_ASC.index(grid[r][c])
+    return BOND
 
-    def is_bound(self, r: int, c: int) -> bool:
-        return 0 <= r < self.R and 0 <= c < self.C
 
-    def get_edges(self):
-        edges = []
-        for sr in range(self.R):
-            for sc in range(self.C):
-                for er, ec in ((sr, sc+1), (sr+1, sc)):
-                    if not self.is_bound(er, ec):
+def preproc_bond(R: int, C: int, bond: List[List[int]]):
+    # inplace = True
+    # 확실하게 놔야할 것은 놔버린다.
+    has_changed = True
+    while has_changed:
+        has_changed = False
+        for r in range(R):
+            for c in range(C):
+                if bond[r][c] == 0:
+                    continue
+
+                n = 0 # 연결 가능한 인접 원자의 수
+                k = bond[r][c]
+                for dr, dc in zip(DR, DC):
+                    if not (0 <= r+dr < R and 0 <= c+dc < C):
                         continue
-                    if self.grid[er][ec] == 0:
+                    if bond[r+dr][c+dc] == 0:
                         continue
-                    edges.append((sr, sc, er, ec))
-        return edges
+                    n += 1
 
-    def get_total_bonds(self) -> int:
-        bonds = 0
-        for r in range(self.R):
-            for c in range(self.C):
-                bonds += self.grid[r][c]
-        return bonds
+                comb = math.comb(n, k) # 이 원소가 인접한 원소와 연결되는 경우의 수.
+                if comb == 0:
+                    # 다른 원소와 연결해야 하나, 연결 가능한 원소가 없음.
+                    raise InvalidMoleculeException
+                if comb == 1:
+                    # 선택지가 없이 연결해야할 대상이 결정적임.
+                    for dr, dc in zip(DR, DC):
+                        if not (0 <= r+dr < R and 0 <= c+dc < C):
+                            continue
+                        if bond[r+dr][c+dc] > 0:
+                            bond[r+dr][c+dc] -= 1
+                            bond[r][c] -= 1
+                    has_changed = True
+    return bond
 
-    def is_valid(self) -> bool:
-        edges = self.get_edges()
-        max_bonds = self.get_total_bonds()
 
-        if max_bonds % 2 == 1:
+def list_edges(R: int, C: int, bond: List[List[int]]) -> List[Tuple[int, int, int, int]]:
+    edge = []
+    for r in range(R):
+        for c in range(C):
+            if bond[r][c] == 0:
+                continue
+            for dr, dc in zip(DR[:2], DC[:2]):
+                if not (0 <= r+dr < R and 0 <= c+dc < C):
+                    continue
+                if bond[r+dr][c+dc] == 0:
+                    continue
+                edge.append((r, c, r+dr, c+dc))
+    return edge
+
+
+def count_total_bonds(R: int, C: int, bond: List[List[int]]) -> int:
+    total_bond_count = 0
+    for r in range(R):
+        for c in range(C):
+            total_bond_count += bond[r][c]
+    if total_bond_count % 2 == 1:
+        raise InvalidMoleculeException
+    return total_bond_count // 2
+
+
+def validate(R: int, C: int, grid: List[List[str]]) -> bool:
+    bond = init_bond(R, C, grid)
+    bond = preproc_bond(R, C, bond)
+    edge = list_edges(R, C, bond) # len(edge) <= 40
+    total_bond_count = count_total_bonds(R, C, bond)
+
+    def backtracking(i: int = 0, bond_count: int = 0) -> bool:
+        if len(edge) - i < total_bond_count - bond_count:
             return False
+        if i == len(edge):
+            return True
 
-        def backtracking(i: int = 0, bonds: int = 0) -> bool:
-            if i == len(edges):
-                return bonds == max_bonds
-            if bonds > max_bonds:
-                return False
-            sr, sc, er, ec = edges[i]
-            if self.grid[sr][sc] > 0 and self.grid[er][ec] > 0:
-                self.grid[sr][sc] -= 1
-                self.grid[er][ec] -= 1
-                is_valid = backtracking(i+1, bonds+2)
-                self.grid[sr][sc] += 1
-                self.grid[er][ec] += 1
-                if is_valid:
-                    return True
-            return backtracking(i+1, bonds)
+        # don't choose this edge
+        if backtracking(i+1, bond_count):
+            return True
 
-        sys.setrecursionlimit(10*len(edges)+1000)
-        return backtracking()
+        # choose this edge
+        r0, c0, r1, c1 = edge[i]
+        bond[r0][c0] -= 1
+        bond[r1][c1] -= 1
+        if bond[r0][c0] >= 0 and bond[r1][c1] >= 0 and backtracking(i+1, bond_count+1):
+            return True
+        bond[r0][c0] += 1
+        bond[r1][c1] += 1
+
+        return False
+
+    if not backtracking():
+        raise InvalidMoleculeException
 
 
-ctx = Context()
-tc = 1
-while True:
-    ctx.R, ctx.C = map(int, sys.stdin.readline().split())
-    if (ctx.R, ctx.C) == (0, 0):
-        break
-    for r in range(ctx.R):
-        for c, value in enumerate(sys.stdin.readline().strip()):
-            ctx.grid[r][c] = BOND_COUNT[value]
-    sys.stdout.write(f'Molecule {tc} is {"valid" if ctx.is_valid() else "invalid"}.\n')
-    tc += 1
+if __name__ == '__main__':
+    tc = 1
+    while True:
+        R, C = map(int, sys.stdin.readline().split())
+        if (R, C) == (0, 0):
+            break
+        for r in range(R):
+            for c, value in enumerate(sys.stdin.readline().strip()):
+                GRID[r][c] = value
+        try:
+            validate(R, C, GRID)
+        except InvalidMoleculeException:
+            sys.stdout.write(f'Molecule {tc} is invalid.\n')
+        else:
+            sys.stdout.write(f'Molecule {tc} is valid.\n')
+        tc += 1
