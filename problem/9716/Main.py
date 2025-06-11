@@ -4,51 +4,28 @@ import sys
 
 
 def is_alike(R: int, C: int, A: List[List[int]], B: List[List[int]]) -> bool:
-    A_maps = defaultdict(list)
-    B_maps = defaultdict(list)
+    A_maps = defaultdict(int)
+    B_maps = defaultdict(int)
+
+    A_maps.clear()
+    B_maps.clear()
     for r in range(R):
-        A_maps[tuple(sorted(A[r]))].append(tuple(A[r]))
-        B_maps[tuple(sorted(B[r]))].append(tuple(B[r]))
-
+        A_maps[tuple(sorted([A[r][c] for c in range(C)]))] += 1
+        B_maps[tuple(sorted([B[r][c] for c in range(C)]))] += 1
     for key in A_maps:
-        A_maps[key].sort()
+        if A_maps[key] != B_maps[key]:
+            return False
 
-    key = min(A_maps)
-    row_A = A_maps[key][0]
-    for row_B in set(B_maps[key]):
-        for colmap_B in generate_colmaps(row_B, row_A):
-            for key in A_maps:
-                if A_maps[key] != sorted([apply_colmap(row, colmap_B) for row in B_maps[key]]):
-                    break
-                pass
-            else:
-                return True
-    return False
+    A_maps.clear()
+    B_maps.clear()
+    for c in range(C):
+        A_maps[tuple(sorted([A[r][c] for r in range(R)]))] += 1
+        B_maps[tuple(sorted([B[r][c] for r in range(R)]))] += 1
+    for key in A_maps:
+        if A_maps[key] != B_maps[key]:
+            return False
 
-
-def generate_colmaps(row_src: Tuple[int], row_dst: Tuple[int]):
-    """row_src 를 row_dst 처럼 만들기 위해 각 열 번호가 어떻게 바뀌어야 하는지 매핑."""
-    width = len(row_src)
-    colmap = list(range(width))
-    row_dst = list(row_dst)
-
-    def backtracking(i: int):
-        if i == width:
-            yield colmap
-        else:
-            for j in range(i, width):
-                if row_src[i] == row_dst[j] and row_src[j] == row_dst[i]:
-                    colmap[i], colmap[j] = colmap[j], colmap[i]
-                    row_dst[i], row_dst[j] = row_dst[j], row_dst[i]
-                    yield from backtracking(i+1)
-                    colmap[i], colmap[j] = colmap[j], colmap[i]
-                    row_dst[i], row_dst[j] = row_dst[j], row_dst[i]
-
-    return backtracking(0)
-
-
-def apply_colmap(row: List[int], colmap: List[int]) -> Tuple[int]:
-    return tuple([row[colmap[c]] for c in range(len(row))])
+    return True
 
 
 if __name__ == '__main__':
