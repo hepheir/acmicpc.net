@@ -3,29 +3,43 @@ from collections import defaultdict
 import sys
 
 
-def generate(password: List[int], diff: int, i: int = 0) -> Iterable[Tuple[int]]:
-    if i == len(password):
-        yield tuple()
-    else:
-        for others in generate(password, diff, i+1):
-            if password[i]+diff <= 9:
-                yield tuple([password[i]+diff, *others])
-            if password[i]-diff >= 0:
-                yield tuple([password[i]-diff, *others])
+def trie_insert(trie: dict, password: Tuple[int]):
+    if not password:
+        trie['leaf'] = True
+        return
+    num, *others = password
+    if num not in trie:
+        trie[num] = {}
+    trie_insert(trie[num], others)
+
+
+def trie_search(trie: dict, password: Tuple[int], diff: int) -> Iterable[Tuple[int]]:
+    if not password:
+        if trie.get('leaf', False):
+            yield tuple()
+        return
+    num, *others = password
+    for num_alt in (num-diff, num+diff):
+        if not (0 <= num_alt <= 9 and num_alt in trie):
+            continue
+        for tail in trie_search(trie[num_alt], others, diff):
+            yield (num_alt, *tail)
 
 
 T = int(sys.stdin.readline())
 for n in range(1, T+1):
     N = int(sys.stdin.readline())
-    G = defaultdict(list)
+    G = defaultdict(set)
+    trie = {}
     for i in range(N):
         u = tuple(map(int, sys.stdin.readline().strip()))
-        G[u].clear()
         for diff in range(10):
-            for v in generate(u, diff):
-                if u != v and v in G:
-                    G[v].append(u)
-                    G[u].append(v)
+            for v in trie_search(trie, u, diff):
+                if u != v:
+                    G[v].add(u)
+                    G[u].add(v)
+        trie_insert(trie, u)
+
 
     visited = defaultdict(bool)
     answer = 0
