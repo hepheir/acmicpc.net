@@ -4,6 +4,9 @@ import sys
 import dataclasses
 
 
+MAX_A = 100000
+
+
 @dataclasses.dataclass
 class Query:
     index: int
@@ -25,12 +28,12 @@ for i in range(M):
     QUERIES[l // SQRT_N].append(query)
 
 
-range_max_tree = [0] * (4*N)
+range_max_tree = [0] * (4*MAX_A)
 
 
 def rmt_clear():
     for i in range(N):
-        rmt_update(i, value=0)
+        rmt_update(A[i], value=0)
 
 
 def rmt_top() -> int:
@@ -62,7 +65,7 @@ def rmt_update(index: int, diff: int = None, value: int = None):
             range_max_tree[2*node],
             range_max_tree[2*node+1],
         )
-    rmt_update_util(1, 0, N-1)
+    rmt_update_util(1, 1, MAX_A)
 
 
 def mo(queries: List[Query]):
@@ -92,9 +95,9 @@ def mo(queries: List[Query]):
 
 
 results: List[Query] = []
-for block in QUERIES.values():
-    mo(block)
-    results.extend(block)
+for block in QUERIES:
+    mo(QUERIES[block])
+    results.extend(QUERIES[block])
 
 for q in sorted(results, key=lambda q: q.index):
     sys.stdout.write(f'{q.answer}\n')
