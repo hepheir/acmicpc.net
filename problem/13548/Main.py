@@ -28,70 +28,65 @@ for i in range(M):
     QUERIES[l // SQRT_N].append(query)
 
 
-range_max_tree = [0] * (4*MAX_A)
+counts_per_number = [0] * (MAX_A+1)
+numbers_per_count = [0] * (MAX_A+1)
+max_count = 0
 
 
-def rmt_clear():
-    for i in range(N):
-        rmt_update(A[i], value=0)
+def cnt_clear():
+    global max_count
+    for x in range(MAX_A+1):
+        counts_per_number[x] = 0
+        numbers_per_count[x] = 0
+    max_count = 0
 
 
-def rmt_top() -> int:
-    return range_max_tree[1]
+def cnt_increase(x: int):
+    global max_count
+    numbers_per_count[counts_per_number[x]] -= 1
+    counts_per_number[x] += 1
+    numbers_per_count[counts_per_number[x]] += 1
+    if counts_per_number[x] > max_count:
+        max_count = counts_per_number[x]
 
 
-def rmt_increase(index: int):
-    rmt_update(index, diff=1)
+def cnt_decrease(x: int):
+    global max_count
+    numbers_per_count[counts_per_number[x]] -= 1
+    counts_per_number[x] -= 1
+    numbers_per_count[counts_per_number[x]] += 1
+    while numbers_per_count[max_count] == 0 and max_count > 0:
+        max_count -= 1
 
 
-def rmt_decrease(index: int):
-    rmt_update(index, diff=-1)
-
-
-def rmt_update(index: int, diff: int = None, value: int = None):
-    def rmt_update_util(node: int, node_lo: int, node_hi: int):
-        if index < node_lo or node_hi < index:
-            return
-        if node_lo == node_hi:
-            if diff is not None:
-                range_max_tree[node] += diff
-            if value is not None:
-                range_max_tree[node] = value
-            return
-        node_mid = (node_lo+node_hi)//2
-        rmt_update_util(2*node, node_lo, node_mid)
-        rmt_update_util(2*node+1, node_mid+1, node_hi)
-        range_max_tree[node] = max(
-            range_max_tree[2*node],
-            range_max_tree[2*node+1],
-        )
-    rmt_update_util(1, 1, MAX_A)
+def cnt_top() -> int:
+    return max_count
 
 
 def mo(queries: List[Query]):
     queries.sort(key=lambda q: q.r)
     l, r = None, None
-    rmt_clear()
+    cnt_clear()
     for q in queries:
         if l is None and r is None:
             l = q.l
             r = q.r
             for i in range(l, r+1):
-                rmt_increase(A[i])
+                cnt_increase(A[i])
         else:
             while l < q.l:
-                rmt_decrease(A[l])
+                cnt_decrease(A[l])
                 l += 1
             while l > q.l:
                 l -= 1
-                rmt_increase(A[l])
+                cnt_increase(A[l])
             while r < q.r:
                 r += 1
-                rmt_increase(A[r])
+                cnt_increase(A[r])
             while r > q.r:
-                rmt_decrease(A[r])
+                cnt_decrease(A[r])
                 r -= 1
-        q.answer = rmt_top()
+        q.answer = cnt_top()
 
 
 results: List[Query] = []
