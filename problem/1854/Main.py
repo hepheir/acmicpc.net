@@ -42,6 +42,6 @@ while heap:
             heapq.heappush(heap, (d + w, v))
 
 for u in range(1, N+1):
-    if (ans := sorted(-d for d in dist[u])[K-1]) == INF:
+    if (ans := -dist[u][0]) == INF:
         ans = -1
     sys.stdout.write(f'{ans}\n')
