@@ -17,17 +17,17 @@ def solve(A: List[int], B: int, C: int) -> int:
     if B < C:
         return B * SUM_A
     cost = 0
-    for i in range(len(A)):
-        if i+2 < len(A) and A[i] >= A[i+2] and A[i+1] >= A[i+2]:
-            amount = A[i+2]
+    for i in reversed(range(len(A))):
+        if i-2 >= 0:
+            amount = min(A[i], A[i-1], A[i-2])
             A[i] -= amount
-            A[i+1] -= amount
-            A[i+2] -= amount
+            A[i-1] -= amount
+            A[i-2] -= amount
             cost += (B+2*C) * amount
-        if i+1 < len(A) and A[i] >= A[i+1]:
-            amount = A[i+1]
+        if i-1 >= 0:
+            amount = min(A[i], A[i-1])
             A[i] -= amount
-            A[i+1] -= amount
+            A[i-1] -= amount
             cost += (B+C) * amount
         amount = A[i]
         A[i] -= amount
