@@ -5,12 +5,12 @@ import sys
 READ = defaultdict(int)
 WRITE = defaultdict(int)
 
-time = 0
+time = 1
 last_wait = 0
 
 
 def exec_READ(A: int):
-    global last_wait, time
+    global time
     # check READ with WRITE
     if WRITE[A] > last_wait:
         exec_WAIT()
@@ -20,10 +20,11 @@ def exec_READ(A: int):
 
 
 def exec_WRITE(A: int, B: int):
-    global last_wait, time
+    global time
     # check READ with WRITE
     if READ[B] > last_wait:
         exec_WAIT()
+    # check WRITE with WRITE
     if WRITE[A] > last_wait:
         exec_WAIT()
     if WRITE[B] > last_wait:
@@ -42,7 +43,9 @@ def exec_WAIT():
 
 
 def exec_EXIT():
+    global time
     sys.stdout.write('EXIT\n')
+    time += 1
 
 
 while True:
