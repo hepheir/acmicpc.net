@@ -1,7 +1,8 @@
 # 14619번: 섬 여행
 
+from collections import deque
 from functools import cache
-from typing import Set
+from typing import List
 import sys
 
 INF = sys.maxsize
@@ -17,29 +18,37 @@ for _ in range(M):
     G[Y].append(X)
 
 
-def solve(A: int, K: int) -> int:
-    answer = INF
-    for node in visitable_nodes(A, K):
-        if answer > H[node]:
-            answer = H[node]
-    if answer == INF:
-        return -1
-    return answer
-
-
-
 @cache
-def visitable_nodes(node: int, steps: int) -> Set[int]:
-    answer = set()
-    if steps == 0:
-        answer.add(node)
-    else:
-        for neighbor in G[node]:
-            answer.update(visitable_nodes(neighbor, steps-1))
-    return answer
+def get_min_height_per_moves(node: int) -> List[int]:
+    # 반환값의 k번째 인덱스는 node 로 부터 k번 다리를 건넜을 때,
+    # 방문할 수 있는 노드들 중 가장 작은 높이.
+    # O(N^2 K)
+    min_height = [-1] * (MAX_K+1)
+
+    queue = deque()
+    dist = [-1] * (N+1)
+
+    d = 0
+    queue.append(node)
+    dist[node] = d
+    min_height[d] = H[node]
+
+    while queue and (d := d+1) <= MAX_K:
+        for _ in range(len(queue)):
+            u = queue.popleft()
+            for v in G[u]:
+                if dist[v] >= d:
+                    continue
+                dist[v] = d
+                queue.append(v)
+                if (min_height[d] == -1) or (min_height[d] > H[v]):
+                    min_height[d] = H[v]
+
+    return min_height
 
 
 T = int(sys.stdin.readline())
 for _ in range(T):
     A, K = map(int, sys.stdin.readline().split())
-    sys.stdout.write(f'{solve(A, K)}\n')
+    answer = get_min_height_per_moves(A)[K]
+    sys.stdout.write(f'{answer}\n')
