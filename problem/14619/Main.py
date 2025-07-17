@@ -1,6 +1,7 @@
 # 14619번: 섬 여행
 
-import collections
+from functools import cache
+from typing import Set
 import sys
 
 INF = sys.maxsize
@@ -15,28 +16,30 @@ for _ in range(M):
     G[X].append(Y)
     G[Y].append(X)
 
-dp = [[-1] * (MAX_K+1) for _ in range(N+1)] # dp[node][hop] = count
-queue = collections.deque()
-visited = set()
-for X in range(1, N+1):
-    queue.clear()
-    visited.clear()
-    queue.append(X)
-    visited.add(X)
-    for k in range(MAX_K):
-        for _ in range(len(queue)):
-            u = queue.popleft()
-            for v in G[u]:
-                if v not in visited:
-                    visited.add(v)
-                    queue.append(v)
-        dp[X][k] = len(visited)
-        if not queue:
-            break
-        visited.clear()
+
+def solve(A: int, K: int) -> int:
+    answer = INF
+    for node in visitable_nodes(A, K):
+        if answer > H[node]:
+            answer = H[node]
+    if answer == INF:
+        return -1
+    return answer
+
+
+
+@cache
+def visitable_nodes(node: int, steps: int) -> Set[int]:
+    answer = set()
+    if steps == 0:
+        answer.add(node)
+    else:
+        for neighbor in G[node]:
+            answer.update(visitable_nodes(neighbor, steps-1))
+    return answer
 
 
 T = int(sys.stdin.readline())
 for _ in range(T):
     A, K = map(int, sys.stdin.readline().split())
-    sys.stdout.write(f'{dp[A][K]}\n')
+    sys.stdout.write(f'{solve(A, K)}\n')
