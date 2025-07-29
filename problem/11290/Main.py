@@ -1,7 +1,6 @@
 # 11290번: Wonowon
 
 import sys
-import collections
 
 
 N = int(sys.stdin.readline())
@@ -14,27 +13,26 @@ for i in range(2, int(N**0.5)+1):
     if sieve[i]:
         for j in range(i*i, N+1, i):
             sieve[j] = False
+
 for i in range(2, N+1):
     if sieve[i]:
         primes.append(i)
 
-queue = collections.deque()
 
-for p in primes:
-    queue.append((1, p))
+def W(p: int) -> int:
+    if p == 2 or p == 5:
+        return -1
+    retval = 1
+    w = 1
+    while w % p:
+        w = (w*100+1) % p
+        retval += 2
+    return retval
+
 
 answer = 0
-w_p = 1
-while queue:
-    for _ in range(len(queue)):
-        w, p = queue.popleft()
-        if w % p == 0:
-            if w_p == p - 2:
-                answer += 1
-            continue
-        if w_p > p - 2:
-            continue
-        queue.append(((w*100+1)%p, p))
-    w_p += 2
+for p in primes:
+    if W(p) == p-2:
+        answer += 1
 
 print(answer)
