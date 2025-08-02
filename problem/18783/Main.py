@@ -5,41 +5,40 @@ import sys
 
 N, M, K = map(int, sys.stdin.readline().split())
 
-# O(NM)
-MAPPER_DIFF = {i:i for i in range(1, N+1)}
+# 입력을 토대로 Permutation 을 구성한다. O(NM)
+PERMUTATION = list(range(N)) # Zero-base
 for _ in range(M):
     L, R = map(int, sys.stdin.readline().split())
     window_size = R-L+1
     for offset in range(window_size//2):
-        l = L+offset
-        r = R-offset
-        MAPPER_DIFF[l], MAPPER_DIFF[r] = MAPPER_DIFF[r], MAPPER_DIFF[l]
+        l = L+offset-1
+        r = R-offset-1
+        PERMUTATION[l], PERMUTATION[r] = PERMUTATION[r], PERMUTATION[l]
 
 
-def is_initial_state(mapper: dict) -> bool:
-    for i in range(1, N+1):
-        if mapper[i] != i:
-            return False
-    return True
+# 모든 사이클을 찾는다. O(N)
+cycles = []
+visited = [False] * N
+for i in range(N):
+    if visited[i]:
+        continue
+    cycle = [i]
+    visited[i] = True
+    while PERMUTATION[cycle[-1]] != i:
+        cycle.append(PERMUTATION[cycle[-1]])
+        visited[cycle[-1]] = True
+    cycles.append(cycle)
 
 
-def simulate_once(mapper: dict) -> dict:
-    return {i: MAPPER_DIFF[mapper[i]] for i in range(1, N+1)}
+# 각 사이클 별로 소들을 움직인다. O(N)
+# (사이클들의 모든 원소의 개수의 합은 N이다.)
+answer = [0] * N
+for cycle in cycles:
+    offset = K % len(cycle)
+    for i in range(len(cycle)):
+        answer[cycle[i]] = cycle[(i+offset) % len(cycle)]
 
 
-# Find out period.
-mapper = {i: i for i in range(1, N+1)}
-period = 1
-while not is_initial_state((mapper := simulate_once(mapper))):
-    period += 1
-
-
-# The actual simulation
-mapper = {i: i for i in range(1, N+1)}
-for _ in range(K % period):
-    mapper = simulate_once(mapper)
-
-
-# Print the answer
-for i in range(1, N+1):
-    sys.stdout.write(f'{mapper[i]}\n')
+# 정답을 출력한다.
+for i in range(N):
+    sys.stdout.write(f'{answer[i]+1}\n')
