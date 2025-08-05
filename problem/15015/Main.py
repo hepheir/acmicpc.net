@@ -1,44 +1,50 @@
-# 15015번: Man
+# 15015번: Manhattan Mornings
 
+from typing import Tuple, List
+from bisect import bisect_right
 import sys
 
+INF = sys.maxsize
 
 
 n = int(sys.stdin.readline())
-xh, yh, xw, yw = map(int, sys.stdin.readline().split())
-
-# 집과 직장을 포함하여 방문가능한 좌표들 모음.
-nodes = [(xh, yh), (xw, yw)]
-
-x_min = min(nodes[0][0], nodes[-1][0])
-x_max = max(nodes[0][0], nodes[-1][0])
-y_min = min(nodes[0][1], nodes[-1][1])
-y_max = max(nodes[0][1], nodes[-1][1])
-
+x_h, y_h, x_w, y_w = map(int, sys.stdin.readline().split())
+nodes: List[Tuple[int, int]] = []
 for _ in range(n):
     x, y = map(int, sys.stdin.readline().split())
+    nodes.append((x, y))
+
+
+# 심부름을 처리할 수 있는 경계 범위
+x_min, x_max = min(x_h, x_w), max(x_w, x_h)
+y_min, y_max = min(y_h, y_w), max(y_w, y_h)
+
+# x_min -> x_max 방향으로 이동할 때, y값의 증감 여부
+y_asc = True if ((x_h-x_w)*(y_h-y_w)) >= 0 else False
+
+
+# LIS, O(n log n)
+# 변수명 조합 A, D, X 는 다음 문서를 참고함:
+# https://namu.wiki/w/최장%20증가%20부분%20수열#s-3.1
+A = [(-INF, -INF)]
+for x, y in nodes:
     if x_min <= x <= x_max and y_min <= y <= y_max:
-        nodes.append((x, y))
+        # x = [x_min, x_max] 구간에 대한 LIS 문제로 치환하기 위해,
+        # y도 증가하는 방향으로 맞춰준다.
+        A.append((x, y if y_asc else -y))
+A.sort()
 
-nodes.sort()
+N = len(A)
+D = [0] * N
+X = [INF] * N
+X[0] = -INF
 
-
-def max_visitable_nodes(i: int, j: int) -> int:
-    """i, j번째 노드를 방문할 때, [i+1:j-1] 구간에 존재하며
-    총 이동 거리를 늘리지 않으면서 방문 가능한 노드의 개수.
-    """
-    x_min = min(nodes[i][0], nodes[j][0])
-    x_max = max(nodes[i][0], nodes[j][0])
-    y_min = min(nodes[i][1], nodes[j][1])
-    y_max = max(nodes[i][1], nodes[j][1])
-    max_count = 0
-    for k in range(i+1, j):
-        x, y = nodes[k]
-        if x_min <= x <= x_max and y_min <= y <= y_max:
-            count = 1 + max_visitable_nodes(i, k) + max_visitable_nodes(k, j)
-            max_count = max(max_count, count)
-    return max_count
+# y에 대한 LIS의 길이를 탐색한다.
+for i in range(1, N):
+    y = A[i][1]
+    D[i] = bisect_right(X, y, lo=0, hi=i)
+    X[D[i]] = min(X[D[i]], y)
 
 
-answer = max_visitable_nodes(0, len(nodes)-1)
+answer = max(D)
 print(answer)
