@@ -40,10 +40,14 @@ X = [INF] * N
 X[0] = -INF
 
 # y에 대한 LIS의 길이를 탐색한다.
+answer = 0
 for i in range(1, N):
     y = A[i][1]
     D[i] = bisect_right(X, y, lo=0, hi=i)
-    X[D[i]] = min(X[D[i]], y)
+    if answer < D[i]:
+        answer = D[i]
+    if X[D[i]] > y:
+        X[D[i]] = y
 
 
 answer = max(D)
