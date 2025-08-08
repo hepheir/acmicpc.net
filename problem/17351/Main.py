@@ -23,6 +23,8 @@ def count_MOLA(x: int = 0, y: int = 0, expect: str = 'M') -> int:
             count = max(count_MOLA(x+1, y, 'A'), count_MOLA(x, y+1, 'A'))
         elif expect == 'A':
             count = max(count_MOLA(x+1, y), count_MOLA(x, y+1)) + 1
+    elif GRID[y][x] == 'M':
+        count = max(count_MOLA(x+1, y, 'O'), count_MOLA(x, y+1, 'O'))
     else:
         count = max(count_MOLA(x+1, y), count_MOLA(x, y+1))
     return count
