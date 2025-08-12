@@ -1,38 +1,37 @@
 # 30828번: 셰프 건공이
 
-import functools
 import sys
 
-
 INF = sys.maxsize
+
 MAX_N = 500
 MAX_T = 511
-
-sys.setrecursionlimit(100*MAX_N)
+MAX_Q = 100000
 
 
 N = int(sys.stdin.readline())
-T = list(map(int, sys.stdin.readline().split()))
+T = [None, *map(int, sys.stdin.readline().split())]
 
 
-@functools.cache
-def solve(l: int, r: int) -> int:
-    return max(max_xor(l, r, k)+k for k in range(r-l+2))
+answer = [[0] * (N+1) for _ in range(N+1)]
 
-
-@functools.cache
-def max_xor(l: int, r: int, k: int) -> int:
-    """[l,r] 구간의 숫자 중 k개를 xor하여 얻을 수 있는 최대 숫자.
-    20,958,500가지 경우의 수 존재.
-    """
-    if k == 0:
-        return 0
-    if l > r:
-        return -INF
-    return max(max_xor(l, r-1, k), max_xor(l, r-1, k-1)^T[r-1])
+for l in range(1, N+1):
+    # curr[i] = 임의의 원소들을 XOR 하여 i를 만들기 위한 최소 원소 개수
+    curr = [INF] * (MAX_T+1)
+    prev = [INF] * (MAX_T+1)
+    curr[0] = 0
+    xor_value = 0
+    xor_count = 0
+    for r in range(l, N+1):
+        xor_value ^= T[r]
+        xor_count += 1
+        prev, curr = curr, prev
+        for i in range(MAX_T+1):
+            curr[i] = min(prev[i], prev[i^T[r]]+1)
+        answer[l][r] = max((xor_value^i)-curr[i] for i in range(MAX_T+1)) + xor_count
 
 
 Q = int(sys.stdin.readline())
 for _ in range(Q):
     l, r = map(int, sys.stdin.readline().split())
-    sys.stdout.write(f'{solve(l, r)}\n')
+    sys.stdout.write(f'{answer[l][r]}\n')
