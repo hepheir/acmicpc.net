@@ -10,12 +10,33 @@
 a1, a2, a3 = map(int, input().split())
 b1, b2, b3 = map(int, input().split())
 
-# 일단은 1, 2, 3끼리 페어를 맺어본다.
+answer = 0
+
+# 일단은 BGA, DVI 단일 포트들끼리 페어를 맺어본다.
 c1 = min(a1, b1)
+a1 -= c1
+b1 -= c1
+
 c2 = min(a2, b2)
+a2 -= c2
+b2 -= c2
+
+answer += c1+c2
+
+# BGA, DVI 단일 포트들을 상대의 범용 포트에 연결해준다.
+c3_a = min(a3, b1+b2)
+c3_b = min(b3, a1+a2)
+a3 -= c3_a
+b3 -= c3_b
+
+answer += c3_a + c3_b
+
+# 남는 범용 포트들끼리 연결해준다.
 c3 = min(a3, b3)
+a3 -= c3
+b3 -= c3
 
-# 여분의 *3 계열 장치를 짝을 이루는 다른 기기와 맺어준다.
-c_univ = min(a3-c3, b1-c1+b2-c2) + min(b3-c3, a1-c1+a2-c2)
+answer += c3
 
-print(c1 + c2 + c3 + c_univ)
+
+print(answer)
