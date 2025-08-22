@@ -8,21 +8,20 @@
 """
 
 
-def count_factors(n: int) -> int:
-    # O(sqrt(n))
-    retval = 0
-    for i in range(1, int(n**0.5)+1):
-        if n % i != 0:
-            continue
-        retval += 1
-        if n // i == i:
-            continue
-        retval += 1
-    return retval
-
-
 def solve(N: int, M: int) -> int:
-    return sum(count_factors(i) for i in range(N, M+1))
+    def solve_util(N: int) -> int:
+        """[1..N] 구간의 정수 각각의 약수 개수의 합을 구하는 함수.
+        O(N)
+
+        핵심 컨셉:
+        i = [1..N] 에서, (i의 배수의 개수)의 합을 구한다.
+        """
+        answer = 0
+        for i in range(1, N+1):
+            answer += N // i # N 이하의 i의 배수의 개수
+        return answer
+
+    return solve_util(M) - solve_util(N-1)
 
 
 if __name__ == '__main__':
