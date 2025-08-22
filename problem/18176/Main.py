@@ -11,14 +11,21 @@
 def solve(N: int, M: int) -> int:
     def solve_util(N: int) -> int:
         """[1..N] 구간의 정수 각각의 약수 개수의 합을 구하는 함수.
-        O(N)
+        O(sqrt(N))
 
         핵심 컨셉:
         i = [1..N] 에서, (i의 배수의 개수)의 합을 구한다.
         """
         answer = 0
-        for i in range(1, N+1):
-            answer += N // i # N 이하의 i의 배수의 개수
+        i = 1
+        while i <= N:
+            n_divisors = N // i
+
+            # j = (n_divisors 보다 적은 '배수의 개수'를 갖는 다음 i)
+            j = (N // n_divisors) + 1
+
+            answer += n_divisors * (j-i)
+            i = j
         return answer
 
     return solve_util(M) - solve_util(N-1)
