@@ -1,12 +1,13 @@
 # 24762번: Ticket Completed?
 
 import collections
-import math
 import sys
 
 
 N, M = map(int, sys.stdin.readline().split())
+
 rank = list(range(N+1))
+subset_size = collections.Counter()
 
 
 def find(i: int) -> int:
@@ -27,13 +28,9 @@ for _ in range(M):
     union(i, j)
 
 
-subset_size = collections.Counter()
 for i in range(1, N+1):
     subset_size[find(i)] += 1
 
-answer = 0
-for size in subset_size.values():
-    answer += math.comb(size, 2)
-answer /= math.comb(N, 2)
+answer = sum(size * (size-1) for size in subset_size.values()) / (N * (N-1))
 
 print(answer)
