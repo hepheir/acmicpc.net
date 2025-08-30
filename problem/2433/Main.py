@@ -4,31 +4,35 @@ import sys
 import heapq
 
 
-n, m, c = map(int, sys.stdin.readline().split())
-a = list(map(int, sys.stdin.readline().split()))
-
 max_heap = []
 min_heap = []
 
-silence = []
 
-i = 0
-while i < n:
-    heapq.heappush(min_heap, (a[i], i))
-    heapq.heappush(max_heap, (-a[i], i))
+def sample_append(x: int, expires_at: int) -> int:
+    heapq.heappush(min_heap, (+x, expires_at))
+    heapq.heappush(max_heap, (-x, expires_at))
 
-    while max_heap[0][1] <= i-m:
+
+def sample_diff(now: int) -> int:
+    while max_heap and max_heap[0][1] <= now:
         heapq.heappop(max_heap)
-    while min_heap[0][1] <= i-m:
+    while min_heap and min_heap[0][1] <= now:
         heapq.heappop(min_heap)
-
-    if i >= m and abs(min_heap[0][0]+max_heap[0][0]) <= c:
-        silence.append(i+1-m+1)
-
-    i += 1
+    return abs(min_heap[0][0]+max_heap[0][0])
 
 
-if not silence:
-    print('NONE')
-else:
-    print('\n'.join(map(str, silence)))
+if __name__ == '__main__':
+    n, m, c = map(int, sys.stdin.readline().split())
+    a = tuple(map(int, sys.stdin.readline().split()))
+    silence = []
+
+    for i in range(1, n+1):
+        sample_append(a[i-1], i+m)
+        if i >= m and sample_diff(i) <= c:
+            silence.append(i-m+1)
+
+    if not silence:
+        sys.stdout.write('NONE\n')
+    else:
+        for i in range(len(silence)):
+            sys.stdout.write(f'{silence[i]}\n')
