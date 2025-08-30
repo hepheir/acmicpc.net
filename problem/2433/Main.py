@@ -22,9 +22,9 @@ while i < n:
     while min_heap[0][1] <= i-m:
         heapq.heappop(min_heap)
 
-    if i >= m:
-        if abs(min_heap[0][0]+max_heap[0][0]) <= c:
-            silence.append(i)
+    if i >= m and abs(min_heap[0][0]+max_heap[0][0]) <= c:
+        silence.append(i+1-m+1)
+
     i += 1
 
 
