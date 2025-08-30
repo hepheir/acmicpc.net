@@ -14,9 +14,11 @@ def sample_append(x: int, expires_at: int) -> int:
 
 
 def sample_diff(now: int) -> int:
-    while max_heap and max_heap[0][1] <= now:
+    # assert max_heap
+    # assert min_heap
+    while max_heap[0][1] <= now:
         heapq.heappop(max_heap)
-    while min_heap and min_heap[0][1] <= now:
+    while min_heap[0][1] <= now:
         heapq.heappop(min_heap)
     return abs(min_heap[0][0]+max_heap[0][0])
 
