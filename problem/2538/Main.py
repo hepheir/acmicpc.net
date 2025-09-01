@@ -39,6 +39,8 @@ def get_polygons(W: int, H: int, vertex: List[Tuple[int, int]]) -> List[List[Tup
                 partition[-1].append(vertex[i])
             else:
                 partition.append([vertex[i]])
+        if len(partition[-1]) <= 1:
+            partition.pop()
         return partition
 
     def close_polygon(vertex: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
@@ -46,15 +48,18 @@ def get_polygons(W: int, H: int, vertex: List[Tuple[int, int]]) -> List[List[Tup
         vertex = vertex.copy()
         # 첫 번째 코너 찾기
         dx, dy = (vertex[-1][0]-vertex[-2][0]), (vertex[-1][1]-vertex[-2][1])
+        assert (dx != 0) or (dy != 0)
         if dx > 0: i = 1
         if dx < 0: i = 3
         if dy > 0: i = 2
         if dy < 0: i = 0
         # 3개 이상의 변을 색종이와 공유하는 경우 예외처리
         if abs(vertex[0][0]-vertex[-1][0]) * abs(vertex[0][1]-vertex[-1][1]) == 0:
+            i %= len(corner)
             vertex.append(corner[i])
             i -= 1
         while True:
+            i %= len(corner)
             vertex.append(corner[i])
             if (corner[i][0] == vertex[0][0]) or (corner[i][1] == vertex[0][1]):
                 break
@@ -79,11 +84,10 @@ def calc_polygon_perimeter(polygon: List[Tuple[int, int]]) -> int:
 
 
 def main():
-    W, H = map(int, sys.stdin.readline().split())
-    V = int(sys.stdin.readline())
+    W, H, V, *args = map(int, sys.stdin.read().split())
     vertex = []
-    for _ in range(V):
-        x, y = map(int, sys.stdin.readline().split())
+    for i in range(V):
+        x, y = args[2*i], args[2*i+1]
         vertex.append((x, y))
     n_segments, perimeter = solve(W, H, vertex)
     print(n_segments, perimeter)
