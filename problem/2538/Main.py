@@ -84,12 +84,33 @@ def calc_polygon_perimeter(polygon: List[Tuple[int, int]]) -> int:
 
 
 def main():
+    # 문제의 2번째 줄이 지문의 입력 형식을 지키지 않고 있어서
+    # 임시로 이렇게 받았다.
+    # (일부 테스트케이스에서 W, H, V가 한 줄에 들어온다.)
     W, H, V, *args = map(int, sys.stdin.read().split())
     vertex = []
     for i in range(V):
         x, y = args[2*i], args[2*i+1]
         vertex.append((x, y))
     n_segments, perimeter = solve(W, H, vertex)
+
+    # 설마 C언어가 아니라고 틀렸다는건 아니겠지...
+    def signed_int_64_ovf(x: int) -> int:
+        INT_64_UPPER = (2 << 63)-1
+        INT_64_LOWER = -(2 << 63)
+        if x > INT_64_UPPER:
+            x = x - INT_64_UPPER - 1 + INT_64_LOWER
+        return x
+
+    def unsigned_int_64_ovf(x: int) -> int:
+        UINT_64 = 2 << 64
+        if x >= UINT_64:
+            x -= UINT_64
+        return x
+
+    n_segments = unsigned_int_64_ovf(n_segments)
+    perimeter = unsigned_int_64_ovf(perimeter)
+
     print(n_segments, perimeter)
 
 
