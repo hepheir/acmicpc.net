@@ -4,83 +4,68 @@ from typing import List, Tuple
 import sys
 
 
+def dist(u: Tuple[int, int], v: Tuple[int, int]) -> int:
+    ux, uy = u
+    vx, vy = v
+    dx, dy = vx-ux, vy-uy
+    return abs(dx+dy)
+
+
 def solve(W: int, H: int, vertex: List[Tuple[int, int]]) -> int:
-    for x, y in vertex:
-        if x == 0 or x == W or y == 0 or y == H:
-            break
-    else:
-        # 색종이가 나뉘지 않는 경우.
-        perimeter = 2*(W+H) + calc_polygon_perimeter(vertex)
+    PERIMETER = 2*(W+H)
+
+    def is_edge_on_outer(u: Tuple[int, int], v: Tuple[int, int]) -> bool:
+        """두 정점을 잇는 간선이 색종이의 테두리 위에 있는지 여부."""
+        ux, uy = u
+        vx, vy = v
+        dx, dy = vx-ux, vy-uy
+        return (dx == 0 and (ux == 0 or ux == W)) or (dy == 0 and (uy == 0 or uy == H))
+
+    def cvt_vertex_to_outer_position(u: Tuple[int, int]) -> int:
+        """색종이 테두리를 1자로 폈을 때를 기준으로 한 좌표.
+        (0, 0) 부터 반시계 방향으로 진행.
+        """
+        x, y = u
+        if y == 0: return x
+        if x == W: return W + y
+        if y == H: return W + H + (W-x)
+        if x == 0: return W + H + W + (H-y)
+
+
+    if not any(is_edge_on_outer(vertex[i-1], vertex[i]) for i in range(len(vertex))):
+        perimeter = sum(dist(vertex[i-1], vertex[i]) for i in range(len(vertex)))
+        perimeter += PERIMETER
         return 1, perimeter
 
-    perimeters = [*map(calc_polygon_perimeter, get_polygons(W, H, vertex))]
-    if not perimeters:
-        return 0, 0
-    return len(perimeters), max(perimeters)
+    perimeters = []
 
-
-def get_polygons(W: int, H: int, vertex: List[Tuple[int, int]]) -> List[List[Tuple[int, int]]]:
-    corner = [(0, 0), (W, 0), (W, H), (0, H)]
-
-    def is_end_of_edge(i: int) -> bool:
-        cx, cy = vertex[i]
-        px, py = vertex[i-1]
-        dx, dy = cx-px, cy-py
-        return (dx == 0 and cx*(cx-W) == 0) or (dy == 0 and cy*(cy-H) == 0)
-
-    def partition_vertices(start: int) -> List[List[Tuple[int, int]]]:
-        partition: List[List[Tuple[int, int]]] = [[]]
-        for i in range(start, start+len(vertex)):
-            i %= len(vertex)
-            if not is_end_of_edge(i):
-                partition[-1].append(vertex[i])
-            elif len(partition[-1]) <= 1:
-                partition[-1].clear()
-                partition[-1].append(vertex[i])
-            else:
-                partition.append([vertex[i]])
-        if len(partition[-1]) <= 1:
-            partition.pop()
-        return partition
-
-    def close_polygon(vertex: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-        "색종이의 꼭짓점을 포함하여 다각형의 모든 정점을 표시한다."
-        vertex = vertex.copy()
-        # 첫 번째 코너 찾기
-        dx, dy = (vertex[-1][0]-vertex[-2][0]), (vertex[-1][1]-vertex[-2][1])
-        assert (dx != 0) or (dy != 0)
-        if dx > 0: i = 1
-        if dx < 0: i = 3
-        if dy > 0: i = 2
-        if dy < 0: i = 0
-        # 3개 이상의 변을 색종이와 공유하는 경우 예외처리
-        if abs(vertex[0][0]-vertex[-1][0]) * abs(vertex[0][1]-vertex[-1][1]) == 0:
-            i %= len(corner)
-            vertex.append(corner[i])
-            i -= 1
+    offset = 0
+    while offset < len(vertex):
+        s = (offset-1) % len(vertex)
+        inner_perimeter = 0
         while True:
-            i %= len(corner)
-            vertex.append(corner[i])
-            if (corner[i][0] == vertex[0][0]) or (corner[i][1] == vertex[0][1]):
+            i = offset % len(vertex)
+            if is_edge_on_outer(vertex[i-1], vertex[i]):
                 break
-            i -= 1
-        return vertex
+            inner_perimeter += dist(vertex[i-1], vertex[i])
+            offset += 1
+        e = (offset-1) % len(vertex)
+        try:
+            outer_perimeter = (
+                +cvt_vertex_to_outer_position(vertex[e])
+                -cvt_vertex_to_outer_position(vertex[s])
+            ) % PERIMETER
+            if inner_perimeter > 0:
+                perimeters.append(inner_perimeter+outer_perimeter)
+        except:
+            pass
+        while True:
+            i = offset % len(vertex)
+            if not is_edge_on_outer(vertex[i-1], vertex[i]):
+                break
+            offset += 1
 
-    for i in range(len(vertex)):
-        if is_end_of_edge(i):
-            return [*map(close_polygon, partition_vertices(i))]
-    else:
-        return [vertex]
-
-
-def calc_polygon_perimeter(polygon: List[Tuple[int, int]]) -> int:
-    perimeter = 0
-    for i in range(len(polygon)):
-        cx, cy = polygon[i]
-        px, py = polygon[i-1]
-        dx, dy = cx-px, cy-py
-        perimeter += abs(dx)+abs(dy)
-    return perimeter
+    return len(perimeters), max(perimeters, default=0)
 
 
 def main():
@@ -93,24 +78,6 @@ def main():
         x, y = args[2*i], args[2*i+1]
         vertex.append((x, y))
     n_segments, perimeter = solve(W, H, vertex)
-
-    # 설마 C언어가 아니라고 틀렸다는건 아니겠지...
-    def signed_int_64_ovf(x: int) -> int:
-        INT_64_UPPER = (2 << 63)-1
-        INT_64_LOWER = -(2 << 63)
-        if x > INT_64_UPPER:
-            x = x - INT_64_UPPER - 1 + INT_64_LOWER
-        return x
-
-    def unsigned_int_64_ovf(x: int) -> int:
-        UINT_64 = 2 << 64
-        if x >= UINT_64:
-            x -= UINT_64
-        return x
-
-    n_segments = unsigned_int_64_ovf(n_segments)
-    perimeter = unsigned_int_64_ovf(perimeter)
-
     print(n_segments, perimeter)
 
 
