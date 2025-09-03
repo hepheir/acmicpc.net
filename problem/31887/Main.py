@@ -1,17 +1,11 @@
 # 31887번: 앳코더 스터디
 
-import functools
 import sys
 
-
-MAX_N = int(1e6)
 INF = sys.maxsize
-
-sys.setrecursionlimit(100*MAX_N)
 
 
 N, M = map(int, sys.stdin.readline().split())
-
 a = [*map(int, sys.stdin.readline().split()), 0] # zero-padding for -1 index.
 
 is_target = [False] * (2*N)
@@ -19,25 +13,33 @@ for i in range(M):
     is_target[a[i]] = True
 
 
-@functools.cache
-def calc_time(n: int, step: int) -> int:
-    """1번 동작에서 무조건 step=(-1 or +1) 만큼 움직일 때,
-    1, 2, 3번 동작을 이용하여 n번 건물까지 이동하면서
-    방문 가능한 건물에 있는 모든 근수를 데리고 돌아오는데 걸린 시간.
-    """
-    if not (1 <= n <= (2*N-1)):
-        return INF
-    if n < N:
-        return 1 + min(
-            calc_time(n+N-step, step) + 1,
-            calc_time(n-step, step) + (1 if is_target[n+N] else 0),
+time_pos = [INF] * (2*N+1)
+time_pos[N] = 0
+for offset in range(1, N):
+    time_pos[offset], time_pos[offset+N] = (
+        min(
+            time_pos[offset-1] + (2 if is_target[offset+N] else 1),
+            time_pos[offset+N-1] + 2,
+        ),
+        min(
+            time_pos[offset+N-1] + (2 if is_target[offset] else 1),
+            time_pos[offset-1] + 2
         )
-    if n > N:
-        return 1 + min(
-            calc_time(n-N-step, step) + 1,
-            calc_time(n-step, step) + (1 if is_target[n-N] else 0),
+    )
+
+time_neg = [INF] * (2*N+1)
+time_neg[N] = 0
+for offset in reversed(range(1, N)):
+    time_neg[offset], time_neg[offset+N] = (
+        min(
+            time_neg[offset+1] + (2 if is_target[offset+N] else 1),
+            time_neg[offset+N+1] + 2,
+        ),
+        min(
+            time_neg[offset+N+1] + (2 if is_target[offset] else 1),
+            time_neg[offset+1] + 2
         )
-    return 0
+    )
 
 
 min_time = INF
@@ -45,18 +47,19 @@ for i in range(-1, M):
     time = 0
     if a[i] > 0:
         # 위에서 추가한 zero-padding을 이용한다.
-        time += calc_time(a[i], +1)
-    for x in range(a[i]+1, 2*N):
+        time += time_pos[a[i]]
+    for x in range(a[i]+1, N+N):
         if is_target[x]:
-            time += calc_time(x, -1)
+            time += time_neg[x]
             break
         if x < N and is_target[x+N]:
-            time += calc_time(x+N, -1)
+            time += time_neg[x+N]
             break
         if x > N and is_target[x-N]:
-            time += calc_time(x-N, -1)
+            time += time_neg[x-N]
             break
     if min_time > time:
         min_time = time
+
 
 print(min_time)
