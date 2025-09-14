@@ -11,9 +11,9 @@ def solve(N: int, M: int, S: int, T: int, E: List[Tuple[int, int, int, int, int]
     graph, vertices, source, sink = init_directed_graph(N, M, S, T, E)
     graph = filter_edges(graph, vertices)
     used_vertices = filter_vertices(graph, vertices, source, sink)
-    distance, fatigue, is_negative_cycle = bellman_ford(graph, vertices)
+    distance, fatigue, is_negative_cycle = bellman_ford(graph, vertices, source)
 
-    if distance[sink] == INF:
+    if not used_vertices[sink]:
         return 'VOID'
 
     for u in vertices:
@@ -28,21 +28,11 @@ def init_directed_graph(N: int, M: int, S: int, T: int, E: List[Tuple[int, int, 
     vertices = list(range(N))
     source = S
     sink = T
-    sink_actual = T
-    if source == sink:
-        sink = N
-        vertices.append(sink)
     graph = {u: [] for u in vertices}
     for i in range(M):
         u, v, fatigue_uv, distance, fatigue_vu = E[i]
         graph[u].append((v, fatigue_uv, distance))
         graph[v].append((u, fatigue_vu, distance))
-        if u == sink_actual and sink_actual != sink:
-            graph[sink].append((v, fatigue_uv, distance))
-            graph[v].append((sink, fatigue_vu, distance))
-        if v == sink_actual and sink_actual != sink:
-            graph[u].append((sink, fatigue_uv, distance))
-            graph[sink].append((u, fatigue_vu, distance))
     return graph, vertices, source, sink
 
 
@@ -88,7 +78,7 @@ def filter_vertices(graph: Dict[int, List[Tuple[int, int, int]]], vertices: List
     return {u: (visited[u] and visited_rev[u]) for u in vertices}
 
 
-def bellman_ford(graph: Dict[int, List[Tuple[int, int, int]]], vertices: List[int]):
+def bellman_ford(graph: Dict[int, List[Tuple[int, int, int]]], vertices: List[int], source: int):
     # Bellman-ford, O(VE)
     edges = []
     for u in vertices:
@@ -99,8 +89,8 @@ def bellman_ford(graph: Dict[int, List[Tuple[int, int, int]]], vertices: List[in
     fatigue = {u: INF for u in vertices}
     is_negative_cycle = {u: False for u in vertices}
 
-    distance[S] = 0
-    fatigue[S] = 0
+    distance[source] = 0
+    fatigue[source] = 0
 
     # Repeat relaxation
     for _ in range(len(vertices)):
