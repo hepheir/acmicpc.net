@@ -104,16 +104,15 @@ def bellman_ford(graph: Dict[int, List[Tuple[int, int, int]]], vertices: List[in
                 continue
 
     # Find negative cycle
-    for _ in range(len(vertices)):
-        for u, v, f, d in edges:
-            if (fatigue[v] > fatigue[u] + f):
-                fatigue[v] = fatigue[u] + f
-                distance[v] = distance[u] + d
-                is_negative_cycle[v] = True
-                continue
-            if (fatigue[v] == fatigue[u] + f) and (distance[v] > distance[u] + d):
-                distance[v] = distance[u] + d
-                continue
+    for u, v, f, d in edges:
+        if (fatigue[v] > fatigue[u] + f):
+            fatigue[v] = fatigue[u] + f
+            distance[v] = distance[u] + d
+            is_negative_cycle[v] = True
+            continue
+        if (fatigue[v] == fatigue[u] + f) and (distance[v] > distance[u] + d):
+            distance[v] = distance[u] + d
+            continue
 
     return distance, fatigue, is_negative_cycle
 
