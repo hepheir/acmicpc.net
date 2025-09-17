@@ -1,13 +1,18 @@
 # 16573번: Edit Distance
 
 
+INV = {'0': '1', '1': '0', }
+
 S = input().strip()
-count = {
-    '0': 0,
-    '1': 0,
-}
+N = len(S)
+
+count = {'0': 0, '1': 0, }
 for c in S:
     count[c] += 1
 
-T = S.replace('0', '1') if (count['0'] > count['1']) else S.replace('1', '0')
+if count['0'] == count['1']:
+    T = INV[S[0]] + S[0]*(N-1)
+else:
+    T = min(count, key=lambda k: count[k]) * N
+
 print(T)
