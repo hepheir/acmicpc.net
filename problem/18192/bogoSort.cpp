@@ -1,26 +1,28 @@
 #include "bogoSort.h"
 
+std::vector<int> bubble(int N, int x)
+{
+	std::vector<int> v = copy_array();
+	int e = N-1;
+	while (v.at(x) != x)
+	{
+		while (v.at(e) != x) e--;
+		shuffle_array(x, e);
+		v = copy_array();
+	}
+	return v;
+}
 
 void sort_array(int N)
 {
-	int i, j;
-	std::vector<int> dest, curr;
-	curr = copy_array();
-	for (i = 0; i < N; i++)
-		dest.push_back(curr.at(i));
-	// Selection Sort: O(N^2)
-	for (i = 0; i < N; i++)
-		for (j = i+1; j < N; j++)
-			if (dest.at(i) > dest.at(j))
-				std::swap(dest[i], dest[j]);
-	// Bogo Sort
-	i = 0;
-	j = N-1;
-	while (i < j)
+	std::vector<int> v = copy_array();
+	int s = 0;
+	int e = N - 1;
+	while (s < N)
 	{
-		shuffle_array(i, j);
-		curr = copy_array();
-		while (curr.at(i) == dest.at(i) && i+1 < N) i++;
-		while (curr.at(j) == dest.at(j) && 0 <= j-1) j--;
+		while (v.at(s) == s && s < e) s++;
+		while (v.at(e) == e && s < e) e--;
+		v = bubble(N, s);
+		s++;
 	}
 }
