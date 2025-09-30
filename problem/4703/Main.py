@@ -1,73 +1,62 @@
 # 4703번: 그림의 추측
 
 from collections import defaultdict
-from typing import *
+from typing import List
 import sys
 
 
 MAX_H = int(1e10)
-MAX_PRIMES = int(MAX_H**0.5)
+MAX_PRIME = int(MAX_H**0.5)
 
-is_prime = [True] * (MAX_PRIMES+1)
+
+is_prime = [True] * (MAX_PRIME+1)
 is_prime[0] = False
 is_prime[1] = False
-for i in range(2, int(MAX_PRIMES**0.5)+1):
+for i in range(2, MAX_PRIME+1):
     if not is_prime[i]:
         continue
-    for j in range(i*i, MAX_PRIMES+1, i):
+    for j in range(i*i, MAX_PRIME+1, i):
         is_prime[j] = False
 
-primes = []
-for i in range(2, MAX_PRIMES+1):
-    if is_prime[i]:
-        primes.append(i)
+primes = [i for i in range(2, MAX_PRIME+1) if is_prime[i]]
+
+
+def get_prime_factors(n: int) -> List[int]:
+    retval = []
+    for p in primes:
+        if p > n:
+            break
+        if n % p == 0:
+            retval.append(p)
+            while n % p == 0:
+                n //= p
+    if n > 1:
+        retval.append(n)
+    return retval
 
 
 def solve(L: int, H: int) -> str:
-    # L..H 구간이 합성수이려면 그 구간의 크기는 생각보다 크지 않을 것.
-    choices = defaultdict(list)
-    for p, numbers in find_divisible(L, H):
-        for number in numbers:
-            choices[number].append(p)
+    prime_matched_to = defaultdict(int)
+    prime_visited = defaultdict(bool)
+    prime_visited_all_time = set()
 
-    used = defaultdict(bool)
-    stack = []
-
-    def backtrack(n: int) -> bool:
-        if len(stack) == (H-L+1):
-            return True
-        for prime in choices[n]:
-            if used[prime]:
+    def bipartite_matching(n: int) -> bool:
+        for p in get_prime_factors(n):
+            if prime_visited[p]:
                 continue
-            stack.append(prime)
-            used[prime] = True
-            if backtrack(n+1):
+            prime_visited[p] = True
+            if prime_matched_to[p] == 0 or bipartite_matching(prime_matched_to[p]):
+                prime_matched_to[p] = n
                 return True
-            used[prime] = False
-            stack.pop()
         return False
 
-    backtrack(L)
+    for n in reversed(range(L, H+1)):
+        prime_visited.clear()
+        assert bipartite_matching(n)
+        prime_visited_all_time.update(p for p in prime_visited if prime_visited[p])
 
-    return ' '.join(map(str, stack))
-
-
-def find_divisible(L: int, H: int) -> List[Tuple[int, List[int]]]:
-    """각 소수별로 [L..H]구간에서 나눌 수 있는 수가 무엇인지."""
-    retval = []
-    for prime in primes:
-        if prime > H:
-            break
-        num = L-(L % prime)
-        while num < L:
-            num += prime
-        divisible = []
-        while num <= H:
-            divisible.append(num)
-            num += prime
-        if divisible:
-            retval.append((prime, divisible))
-    return retval
+    number_matched_to = {prime_matched_to[p]: p for p in prime_visited_all_time}
+    return ' '.join(map(str, [number_matched_to[n] for n in range(L, H+1)]))
 
 
 while True:
