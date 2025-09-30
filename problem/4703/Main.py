@@ -5,9 +5,7 @@ from typing import List
 import sys
 
 
-MAX_H = int(1e10)
-MAX_PRIME = int(MAX_H**0.5)
-
+MAX_PRIME = int(1e5)
 
 is_prime = [True] * (MAX_PRIME+1)
 is_prime[0] = False
@@ -18,45 +16,86 @@ for i in range(2, MAX_PRIME+1):
     for j in range(i*i, MAX_PRIME+1, i):
         is_prime[j] = False
 
-primes = [i for i in range(2, MAX_PRIME+1) if is_prime[i]]
+PRIMES = [i for i in range(2, MAX_PRIME+1) if is_prime[i]]
 
 
 def get_prime_factors(n: int) -> List[int]:
     retval = []
-    for p in primes:
-        if p > n:
-            break
+    for p in PRIMES:
         if n % p == 0:
             retval.append(p)
             while n % p == 0:
                 n //= p
+        if n == 1:
+            break
     if n > 1:
         retval.append(n)
     return retval
 
 
 def solve(L: int, H: int) -> str:
-    prime_matched_to = defaultdict(int)
-    prime_visited = defaultdict(bool)
-    prime_visited_all_time = set()
+    solved = False
+    used = defaultdict(bool)
+    factors = dict()
+    factor_count = defaultdict(int)
+    prime_matched = defaultdict(int)
+    answer = None
 
-    def bipartite_matching(n: int) -> bool:
-        for p in get_prime_factors(n):
-            if prime_visited[p]:
+    for n in range(L, H+1):
+        factors[n] = get_prime_factors(n)
+        factor_count[n] = len(factors[n])
+
+    def find_next_number_to_allocate() -> int:
+        n = 0
+        for i in range(L, H+1):
+            if (prime_matched[i] == 0) and (n == 0 or factor_count[i] == 1):
+                n = i
+        return n
+
+    def assign(amount: int = H-L+1):
+        nonlocal solved, answer
+        if solved:
+            return
+
+        if amount == 0:
+            solved = True
+            answer = ' '.join(map(str, [prime_matched[n] for n in range(L, H+1)]))
+            return
+
+        amount -= 1
+
+        n = find_next_number_to_allocate()
+        prime_matched[n] = -1
+
+        for p in factors[n]:
+            if used[p]:
                 continue
-            prime_visited[p] = True
-            if prime_matched_to[p] == 0 or bipartite_matching(prime_matched_to[p]):
-                prime_matched_to[p] = n
-                return True
-        return False
 
-    for n in reversed(range(L, H+1)):
-        prime_visited.clear()
-        assert bipartite_matching(n)
-        prime_visited_all_time.update(p for p in prime_visited if prime_visited[p])
+            failed = False
+            for i in range(L, H+1):
+                if (prime_matched[i] == 0) and (p in factors[i]):
+                    factor_count[i] -= 1
+                    if factor_count[i] == 0:
+                        failed = True
 
-    number_matched_to = {prime_matched_to[p]: p for p in prime_visited_all_time}
-    return ' '.join(map(str, [number_matched_to[n] for n in range(L, H+1)]))
+            if not failed:
+                prime_matched[n] = p
+                used[p] = True
+                assign(amount)
+                if solved:
+                    return
+                used[p] = False
+
+            for i in range(L, H+1):
+                if (prime_matched[i] == 0) and (p in factors[i]):
+                    factor_count[i] += 1
+
+        prime_matched[n] = 0
+        return
+
+    assign()
+    assert answer is not None
+    return answer
 
 
 while True:
