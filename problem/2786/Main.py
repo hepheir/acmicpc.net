@@ -1,6 +1,7 @@
 # 2786번: 상근이의 레스토랑
 
 import sys
+import heapq
 
 MAX_N = int(5e5)
 MAX_A = MAX_B = int(1e9)
@@ -14,34 +15,31 @@ B = [0] * N
 for i in range(N):
     A[i], B[i] = map(int, sys.stdin.readline().split())
 
+used = [False] * N
+heap_A = []
+heap_B = []
+heap_A_instead_of_B = []
+for i in range(N):
+    heapq.heappush(heap_A, (A[i], i))
+    heapq.heappush(heap_B, (B[i], i))
+
 
 # dp[n]: n개의 음식을 시키기 위한 최소 가격.
 dp = [INF] * (N+1)
+dp[1] = heap_A[0][0]
 
-pq_A = sorted(range(N), key=lambda i: A[i], reverse=True)
-pq_B = sorted(range(N), key=lambda i: B[i], reverse=True)
-
-dp[1] = A[pq_A[-1]]
-
-# A를 먼저 뽑는 경우:
-acc = 0
+acc_B = 0
 for n in range(2, N+1):
-    if pq_B[-1] == pq_A[-1]:
-        pq_B.pop()
-    acc += B[pq_B.pop()]
-    dp[n] = min(dp[n], A[pq_A[-1]] + acc)
+    i = heapq.heappop(heap_B)[1]
+    acc_B += B[i]
+    used[i] = True
+    while heap_A and used[heap_A[0][1]]:
+        heapq.heappop(heap_A)
+    heapq.heappush(heap_A_instead_of_B, (A[i]-B[i], i))
 
-pq_B = sorted(range(N), key=lambda i: B[i], reverse=True)
-
-# B를 먼저 뽑는 경우:
-used = [False] * N
-acc = 0
-for n in range(2, N+1):
-    acc += B[pq_B[-1]]
-    used[pq_B[-1]] = True
-    pq_B.pop()
-    while used[pq_A[-1]]:
-        pq_A.pop()
-    dp[n] = min(dp[n], A[pq_A[-1]] + acc)
+    if heap_A[0][0] < heap_B[0][0] + heap_A_instead_of_B[0][0]:
+        dp[n] = acc_B + heap_A[0][0]
+    else:
+        dp[n] = acc_B + heap_B[0][0] + heap_A_instead_of_B[0][0]
 
 sys.stdout.write('\n'.join(map(str, dp[1:N+1])))
