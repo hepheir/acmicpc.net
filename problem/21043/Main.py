@@ -6,25 +6,39 @@ MAX_A = MAX_B = 50000
 
 
 def solve(N, A: list[int], B: list[int]) -> int:
-    G = [[] for _ in range(MAX_A+1)]
+    adj = [[] for _ in range(MAX_A+1)]
+    deg = [0] * (MAX_A+1)
     for i in range(N):
-        G[A[i]].append((i, B[i]))
-        G[B[i]].append((i, A[i]))
-    rank = [-1] * N
-    stack = []
-    for i in range(N):
-        if rank[i] == -1:
-            rank[i] = i
-            stack.append(A[i])
-            stack.append(B[i])
-            while stack:
-                u = stack.pop()
-                for j, v in G[u]:
-                    if rank[j] == -1:
-                        rank[j] = i
-                        stack.append(v)
-                        break
-    return len(set(rank) - set([-1]))
+        adj[A[i]].append(B[i])
+        adj[B[i]].append(A[i])
+        deg[A[i]] += 1
+        deg[B[i]] += 1
+
+    visited = [False] * (MAX_A+1)
+
+    def dfs(u: int) -> list:
+        stack = []
+        history = []
+        visited[u] = True
+        stack.append(u)
+        history.append(u)
+        while stack:
+            u = stack.pop()
+            for v in adj[u]:
+                if visited[v]:
+                    continue
+                visited[v] = True
+                stack.append(v)
+                history.append(v)
+        return history
+
+    answer = 0
+    for u in range(1, MAX_A+1):
+        if not adj[u] or visited[u]:
+            continue
+        odd = sum(deg[v] % 2 for v in dfs(u))
+        answer += max(1, odd // 2)
+    return answer
 
 
 def main():
