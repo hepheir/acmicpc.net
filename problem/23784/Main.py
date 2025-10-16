@@ -1,6 +1,5 @@
 # 23784번: Eidam-Sand Lair
 
-from math import ceil, floor
 import sys
 
 
@@ -19,15 +18,9 @@ def solve(Yp: int, Lp: int, Ys: int, Ls: int) -> float:
     # x^2*(Ys^2 - Ls^2) + 2*x*(Lp*Ls^2 - Yp*Ys^2) + Yp^2*Ys^2 - Lp^2*Ls^2 = 0
     x_candidates = []
     if Ys-Ls != 0:
-        x = (Yp*Ys-Lp*Ls)/(Ys-Ls)
-        if 0 <= x <= max(Yp, Lp):
-            x_candidates.append(ceil(x))
-            x_candidates.append(floor(x))
+        x_candidates.append((Yp*Ys-Lp*Ls)//(Ys-Ls))
     if Ys+Ls != 0:
-        x = (Yp*Ys+Lp*Ls)/(Ys+Ls)
-        if 0 <= x <= max(Yp, Lp):
-            x_candidates.append(ceil(x))
-            x_candidates.append(floor(x))
+        x_candidates.append(((Yp*Ys+Lp*Ls)//(Ys+Ls)))
     ans_candidates = [
         Yp*Ys,
         calc_time(Yp, Lp, Ys, Ls, 0),
@@ -40,7 +33,7 @@ def solve(Yp: int, Lp: int, Ys: int, Ls: int) -> float:
 
 def calc_time(Yp: int, Lp: int, Ys: int, Ls: int, x: int) -> int:
     """x층에서 엘리베이터를 타고 가면 걸리는 시간"""
-    return max(abs(Yp-x)*Ys, abs(Lp-x)*Ls) + x*Ls
+    return max(abs(Yp-x)*Ys, abs(Lp-x)*Ls) + x*min(Ys, Ls)
 
 
 if __name__ == '__main__':
