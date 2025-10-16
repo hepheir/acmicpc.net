@@ -11,29 +11,34 @@ def main():
         print(int(answer))
 
 
-def solve(Yp: int, Lp: int, Ys: int, Ls: int) -> float:
-    # x층에서 엘리베이터를 탑승한다고 하면, 최적의 탑승 위치 x는...
-    # abs(Yp-x)*Ys = abs(Lp-x)*Ls
-    # (Yp^2 - 2*x*Yp + x^2) * Ys^2 = (Lp^2 - 2*x*Lp + x^2) * Ls^2
-    # x^2*(Ys^2 - Ls^2) + 2*x*(Lp*Ls^2 - Yp*Ys^2) + Yp^2*Ys^2 - Lp^2*Ls^2 = 0
-    x_candidates = []
-    if Ys-Ls != 0:
-        x_candidates.append((Yp*Ys-Lp*Ls)//(Ys-Ls))
-    if Ys+Ls != 0:
-        x_candidates.append(((Yp*Ys+Lp*Ls)//(Ys+Ls)))
-    ans_candidates = [
+def solve(Yp: int, Lp: int, Ys: int, Ls: int) -> int:
+    if Ys <= Ls:
+        return Yp*Ys
+
+    def take_ev_at(f: int) -> int:
+        return max(abs(Yp-f)*Ys, abs(Lp-f)*Ls) + abs(f)*Ls
+
+    # 경사 하강법...
+    lo = 0
+    hi = Yp
+    while lo < hi:
+        mid = (lo+hi)//2
+        df = take_ev_at(mid)-take_ev_at(mid-1)
+        if df <= 0:
+            lo = mid+1
+        else:
+            hi = mid-1
+
+    return min(
+        # 처음 층부터 걸어 올라가는 시간
         Yp*Ys,
-        calc_time(Yp, Lp, Ys, Ls, 0),
-        calc_time(Yp, Lp, Ys, Ls, Yp),
-        calc_time(Yp, Lp, Ys, Ls, Lp),
-        *(calc_time(Yp, Lp, Ys, Ls, x) for x in x_candidates),
-    ]
-    return min(ans_candidates)
-
-
-def calc_time(Yp: int, Lp: int, Ys: int, Ls: int, x: int) -> int:
-    """x층에서 엘리베이터를 타고 가면 걸리는 시간"""
-    return max(abs(Yp-x)*Ys, abs(Lp-x)*Ls) + x*min(Ys, Ls)
+        # 처음 층에서 엘리베이터를 누르고 기다리는 시간
+        abs(Yp-Lp)*Ls+Yp*Ls,
+        # 어느정도 걸어 올라간 뒤에 엘베 호출
+        take_ev_at(lo-1),
+        take_ev_at(lo),
+        take_ev_at(lo+1),
+    )
 
 
 if __name__ == '__main__':
