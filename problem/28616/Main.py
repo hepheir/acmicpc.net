@@ -39,6 +39,7 @@ def solve(K: int, S: str) -> str:
     ans = []
     rem = (len(digits[1]) + 2*len(digits[2])) % 3
     if rem == 0:
+        ans.append(S)
         if len(digits[0]) >= 1:
             # 0을 1개 제거.
             ans.append(remove_char(S, 0))
