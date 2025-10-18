@@ -1,6 +1,8 @@
 # 28616번: Биомаркеры
 
+import dataclasses
 import sys
+import typing
 
 MAX_K = int(5e5)
 
@@ -12,32 +14,77 @@ def main():
     print(answer)
 
 
-def max_str(*args: str) -> str:
-    s = [s for s in args if not s.startswith('*')]
-    s.sort(key=len, reverse=True)
-    if not s:
-        return '*'
-    while s and len(s[0]) != len(s[-1]):
-        s.pop()
-    return max(s)
+@dataclasses.dataclass
+class Node:
+    value: str
+    size: int = 0
+    rem: int = 0
+    prev: typing.Optional['Node'] = None
+
+    def __init__(self, value: str):
+        self.value = value
+        if value == '*':
+            self.size = 0
+            self.rem = 0
+            self.prev = None
+        else:
+            self.size = 1
+            self.rem = int(value) % 3
+            self.prev = None
+
+    def __lt__(self, other: 'Node') -> bool:
+        if self.size < other.size:
+            return True
+        if self.size > other.size:
+            return False
+        self_node = self
+        other_node = other
+        while self_node is not None and other_node is not None:
+            if self_node.value < other_node.value:
+                return True
+            if self_node.value > other_node.value:
+                return False
+            self_node = self_node.prev
+            other_node = other_node.prev
+        return False
+
+    def __str__(self) -> str:
+        node = self
+        values = []
+        while node is not None:
+            values.append(node.value)
+            node = node.prev
+        return ''.join(values)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def concat_left(self, value: str) -> 'Node':
+        if self.value == '*':
+            return Node(value=value)
+        node = Node(value=value)
+        node.size = node.size + self.size
+        node.rem = (node.rem + self.rem) % 3
+        node.prev = self
+        return node
 
 
 def solve(K: int, S: str) -> str:
-    dp_prev = ['*', '*', '*']
-    dp_curr = ['*', '*', '*']
-    for i in range(K):
+    dp_prev: typing.List[Node] = [Node(value='*')] * 3
+    dp_curr: typing.List[Node] = [Node(value='*')] * 3
+    for i in reversed(range(K)):
         dp_prev, dp_curr = dp_curr, dp_prev
-        n = int(S[i])
         for r in range(3):
             dp_curr[r] = dp_prev[r]
-        dp_curr[n % 3] = max_str(S[i], dp_curr[n % 3])
+        node = Node(S[i])
+        if dp_curr[node.rem] < node:
+            dp_curr[node.rem] = node
         for r in range(3):
-            dp_curr[(r+n) % 3] = max_str(dp_prev[r]+S[i], dp_curr[(r+n) % 3])
-        pass
-    answer = dp_curr[0]
-    if answer == '*':
-        return '0'
-    return str(int(answer))
+            node = dp_prev[r].concat_left(S[i])
+            if dp_curr[node.rem] < node:
+                dp_curr[node.rem] = node
+    answer = dp_curr[0].__str__()
+    return answer
 
 
 if __name__ == '__main__':
