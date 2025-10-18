@@ -40,6 +40,9 @@ class Node:
         self_node = self
         other_node = other
         while self_node is not None and other_node is not None:
+            if self_node == other_node:
+                # 비교가 무의미함.
+                return False
             if self_node.value < other_node.value:
                 return True
             if self_node.value > other_node.value:
@@ -84,7 +87,9 @@ def solve(K: int, S: str) -> str:
             if dp_curr[node.rem] < node:
                 dp_curr[node.rem] = node
     answer = dp_curr[0].__str__()
-    return answer
+    if answer == '*':
+        return '0'
+    return str(int(answer))
 
 
 if __name__ == '__main__':
