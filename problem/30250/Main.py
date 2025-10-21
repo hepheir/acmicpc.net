@@ -1,11 +1,13 @@
 # 30250번: Ones
 
-N = int(input())
+N = input()
 M, d = input().split()
-M = int(M * int(d))
 
-q = M // N
-r = M % N
+ugne = int('1' * int(N))
+jurate = int(d * int(M))
+
+q = ugne // jurate
+r = ugne % jurate
 
 answer = sum(map(int, str(q)))
 
