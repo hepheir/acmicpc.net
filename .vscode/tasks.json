@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Java: 현재파일 .class 생성 (컴파일)",
+            "type": "shell",
+            "command": "javac",
+            "args": [
+                "-cp",
+                "${fileDirname}",
+                "${file}",
+            ],
+        }
+    ]
+}
