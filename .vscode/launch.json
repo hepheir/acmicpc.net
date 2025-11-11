@@ -3,15 +3,15 @@
     "configurations": [
         {
             "name": "Python: 현재 파일",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
             "args": [
                 "<",
                 "${workspaceFolder}/.vscode/stdin"
-            ],
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "justMyCode": true
+            ]
         }
     ]
 }
