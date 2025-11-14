@@ -4,17 +4,14 @@ import sys
 
 
 def solve(p: int, k: int, t: int) -> int:
-    dp = [0] * (t+1)
-    # 곱해서 0이 되어 사라지면 안되니까 예외적으로 1 부여.
-    # (어차피 1 <= t여서 dp[0]이 조회될 일은 없음.)
-    dp[0] = 1
-    for number in range(1, p):
-        if number == k:
-            continue
-        for i in reversed(range(t)):
-            dp[i+1] = (dp[i+1] + dp[i] * number) % p
-    return dp[t]
+    return fast_symmetric_sum_optimal(p, k, t)
 
+
+def fast_symmetric_sum_optimal(p: int, k: int, t: int) -> int:
+    if t >= p - 1:
+        return 0
+    sign = -1 if t % 2 == 1 else 1
+    return (sign * pow(k, t, p)) % p
 
 
 if __name__ == "__main__":
