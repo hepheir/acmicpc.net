@@ -45,20 +45,11 @@ class Main {
 
     private static int maxPreceeders(int initialSpeed) {
         // 소가 최대로 허용할 수 있는 자신의 앞 차 대수.
-        int lo = -1;
-        int hi = N-1;
-        int mid = (lo + hi) / 2;
-        while (lo <= hi) {
-            boolean shouldLowerPreceeders = maxSpeed(initialSpeed, mid) < L;
-            if (shouldLowerPreceeders) {
-                hi = mid-1;
-            }
-            else {
-                lo = mid+1;
-            }
-            mid = (lo + hi) / 2;
+        int answer = N-1;
+        while (maxSpeed(initialSpeed, answer) < L) {
+            answer--;
         }
-        return mid;
+        return answer;
     }
 
     private static int maxSpeed(int initialSpeed, int numberOfPreceeders) {
