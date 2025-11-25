@@ -6,6 +6,7 @@ import java.util.*;
 
 class Main {
     private static final int MAX_N = 50000;
+    private static final int MAX_SPEED = 1000000;
     private static final BufferedReader br;
     private static int N;
     private static int M;
@@ -43,16 +44,22 @@ class Main {
         System.out.println(cowOnAllHighwaysCount);
     }
 
+    private static final int[] maxPreceedersCache = new int[MAX_SPEED+1];
+    private static final boolean[] isMaxPreceedersCached = new boolean[MAX_SPEED+1];
+
     private static int maxPreceeders(int initialSpeed) {
         // 소가 최대로 허용할 수 있는 자신의 앞 차 대수.
-        int answer = N-1;
-        while (maxSpeed(initialSpeed, answer) < L) {
-            answer--;
+        if (!isMaxPreceedersCached[initialSpeed]) {
+            if (initialSpeed < L) {
+                maxPreceedersCache[initialSpeed] = -1;
+            } else {
+                maxPreceedersCache[initialSpeed] = maxPreceeders(initialSpeed - 1);
+                while (initialSpeed - D * (maxPreceedersCache[initialSpeed] + 1) >= L) {
+                    maxPreceedersCache[initialSpeed]++;
+                }
+            }
+            isMaxPreceedersCached[initialSpeed] = true;
         }
-        return answer;
-    }
-
-    private static int maxSpeed(int initialSpeed, int numberOfPreceeders) {
-        return Math.max(initialSpeed - D * numberOfPreceeders, 0);
+        return maxPreceedersCache[initialSpeed];
     }
 }
