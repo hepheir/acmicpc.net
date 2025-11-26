@@ -41,7 +41,7 @@ class Main {
         int minDist = UNREACHABLE;
         for (int c = 0; c < M; c++) {
             for (int dc = -1; dc <= 1; dc++) {
-                minDist = Math.min(minDist, getMinDistNaive(0, c, dc));
+                minDist = Math.min(minDist, getMinDistDP(0, c, dc));
             }
         }
         return minDist;
@@ -73,7 +73,7 @@ class Main {
             if (dc_in == dc_out) {
                 continue;
             }
-            minDist = Math.min(minDist, getMinDistNaive(r + 1, c + dc_out, dc_out));
+            minDist = Math.min(minDist, getMinDistDP(r + 1, c + dc_out, dc_out));
         }
         return minDist + grid[r][c];
     }
