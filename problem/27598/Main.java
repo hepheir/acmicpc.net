@@ -9,11 +9,13 @@ class Main {
     private static final BufferedReader br;
     private static final int[] a;
     private static final int[] b;
+    private static final int[] valueToIndex;
 
     static {
         br = new BufferedReader(new InputStreamReader(System.in));
         a = new int[MAX_N];
         b = new int[MAX_N];
+        valueToIndex = new int[MAX_N + 1];
     }
 
     public static void main(String[] args) throws IOException {
@@ -29,12 +31,11 @@ class Main {
             for (int i = 0; i < n; i++) {
                 b[i] = Integer.parseInt(st.nextToken());
             }
-            System.out.println(solve(n, a, b));
+            System.out.println(solve(n));
         }
     }
 
-    private static int solve(int n, int[] a, int[] b) {
-        int[] valueToIndex = new int[MAX_N+1];
+    private static int solve(int n) {
         for (int i = 0; i < n; i++) {
             valueToIndex[a[i]] = i;
         }
