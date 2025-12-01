@@ -23,51 +23,42 @@ class Main {
         }
     }
 
-    private static int solveTestCase(int n, int[] h, int[] p) {
+    private static int solveTestCase(final int count, final int[] height, final int[] pastHeight) {
+        if (!validateShape(count, height, pastHeight) || !validateErode(count, height, pastHeight)) {
+            return -1;
+        }
         int answer = 0;
-        while (!isEqual(n, h, p)) {
-            int x = determineX(n, h, p);
-            if (!validateX(n, h, p, x)) {
-                return -1;
-            }
-            for (int i = 0; i < n; i++) {
-                if (x <= p[i]) {
-                    p[i]--;
-                }
-            }
-            answer++;
+        for (int i = 0; i < count; i++) {
+            answer = Math.max(answer, pastHeight[i] - height[i]);
         }
         return answer;
     }
 
-    private static boolean isEqual(final int n, final int[] h, int[] p) {
-        for (int i = 0; i < n; i++) {
-            if (h[i] != p[i]) {
+    private static boolean validateShape(final int count, final int[] height, final int[] pastHeight) {
+        // 등고저차가 유지되었거나 평평한지 검사.
+        for (int i = 1; i < count; i++) {
+            // 등락이 역전되면 불가능한 케이스이다.
+            if (sign(pastHeight[i] - pastHeight[i - 1]) * sign(height[i] - height[i - 1]) == -1) {
                 return false;
             }
         }
         return true;
     }
 
-    private static int determineX(final int n, final int[] h, int[] p) {
-        // h가 p에 가까워지기 위한 가장 작은 x 찾기.
-        int x = Integer.MAX_VALUE;
-        for (int i = 0; i < n; i++) {
-            if (h[i] < p[i]) {
-                x = Math.min(x, p[i]);
-            }
-        }
-        return x;
-    }
-
-    private static boolean validateX(final int n, final int[] h, int[] p, final int x) {
-        for (int i = 0; i < n; i++) {
-            boolean willErode = x <= p[i];
-            boolean shouldErode = h[i] < p[i];
-            if (willErode != shouldErode) {
+    private static boolean validateErode(final int count, final int[] height, final int[] pastHeight) {
+        // 유지되었거나 깎여나간건지 검사.
+        for (int i = 0; i < count; i++) {
+            if (pastHeight[i] < height[i]) {
                 return false;
             }
         }
         return true;
+    }
+
+    private static int sign(int x) {
+        if (x == 0) {
+            return 0;
+        }
+        return (x < 0) ? -1 : 1;
     }
 }
