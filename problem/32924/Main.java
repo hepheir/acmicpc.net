@@ -8,6 +8,25 @@ class Main {
     private static final int MAX_N = 100000;
     private static final int[] H = new int[MAX_N];
     private static final int[] P = new int[MAX_N];
+    private static final Integer[] INDEX = new Integer[MAX_N];
+    private static final Comparator<Integer> comparator = new Comparator<>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            if (H[o1] < H[o2]) {
+                return -1;
+            }
+            if (H[o1] > H[o2]) {
+                return 1;
+            }
+            if (P[o1] < P[o2]) {
+                return -1;
+            }
+            if (P[o1] > P[o2]) {
+                return 1;
+            }
+            return 0;
+        }
+    };
 
     public static void main(String[] args) throws IOException {
         int nTestCases = Integer.parseInt(br.readLine());
@@ -19,46 +38,22 @@ class Main {
                 H[i] = Integer.parseInt(tokenizerForH.nextToken());
                 P[i] = Integer.parseInt(tokenizerForP.nextToken());
             }
-            System.out.println(solveTestCase(n, H, P));
+            System.out.println(solveTestCase(n));
         }
     }
 
-    private static int solveTestCase(final int count, final int[] height, final int[] pastHeight) {
-        if (!validateShape(count, height, pastHeight) || !validateErode(count, height, pastHeight)) {
-            return -1;
-        }
+    private static int solveTestCase(final int count) {
         int answer = 0;
         for (int i = 0; i < count; i++) {
-            answer = Math.max(answer, pastHeight[i] - height[i]);
+            INDEX[i] = i;
+        }
+        Arrays.sort(INDEX, 0, count, comparator);
+        for (int i = 0; i < count; i++) {
+            if (i > 0 && P[INDEX[i-1]] > P[INDEX[i]]) {
+                return -1;
+            }
+            answer = Math.max(answer, P[INDEX[i]] - H[INDEX[i]]);
         }
         return answer;
-    }
-
-    private static boolean validateShape(final int count, final int[] height, final int[] pastHeight) {
-        // 등고저차가 유지되었거나 평평한지 검사.
-        for (int i = 1; i < count; i++) {
-            // 등락이 역전되면 불가능한 케이스이다.
-            if (sign(pastHeight[i] - pastHeight[i - 1]) * sign(height[i] - height[i - 1]) == -1) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean validateErode(final int count, final int[] height, final int[] pastHeight) {
-        // 유지되었거나 깎여나간건지 검사.
-        for (int i = 0; i < count; i++) {
-            if (pastHeight[i] < height[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static int sign(int x) {
-        if (x == 0) {
-            return 0;
-        }
-        return (x < 0) ? -1 : 1;
     }
 }
