@@ -6,36 +6,51 @@ import sys
 
 N = int(sys.stdin.readline())
 
-X = [-1] * N
-Y = [-1] * N
+node_x = [-1] * N
+node_y = [-1] * N
+
+axis_x = collections.defaultdict(list)
+axis_x_used = collections.defaultdict(bool)
+
+axis_y = collections.defaultdict(list)
+axis_y_used = collections.defaultdict(bool)
+
 for i in range(N):
     x, y = map(int, sys.stdin.readline().split())
-    X[i] = x
-    Y[i] = y
+    node_x[i] = x
+    node_y[i] = y
+    axis_x[x].append(i)
+    axis_y[y].append(i)
 
 
-x_counter = collections.defaultdict(int)
-y_counter = collections.defaultdict(int)
-
-
-def solve(max_depth: int = 3) -> bool:
+def solve(i: int = 0, max_depth: int = 3) -> bool:
     if max_depth == 0:
-        for x, y in zip(X, Y):
-            if x_counter[x] == 0 and y_counter[y] == 0:
-                return False
+        return all(is_node_visited(j) for j in range(N))
+
+    while i < N and is_node_visited(i):
+        i += 1
+
+    if i == N:
         return True
 
-    for x, y in zip(X, Y):
-        if x_counter[x] > 0 or y_counter[y] > 0:
-            continue
-        x_counter[x] += 1
-        y_counter[y] += 1
-        if solve(max_depth-1):
+    # i번째 칸에 수직/수평선을 놓아야 함.
+    if not axis_x_used[node_x[i]]:
+        axis_x_used[node_x[i]] = True
+        if solve(i+1, max_depth-1):
             return True
-        x_counter[x] -= 1
-        y_counter[y] -= 1
+        axis_x_used[node_x[i]] = False
+
+    if not axis_y_used[node_y[i]]:
+        axis_y_used[node_y[i]] = True
+        if solve(i+1, max_depth-1):
+            return True
+        axis_y_used[node_y[i]] = False
 
     return False
+
+
+def is_node_visited(i: int) -> bool:
+    return axis_x_used[node_x[i]] or axis_y_used[node_y[i]]
 
 
 print(int(solve()))
